@@ -6,35 +6,44 @@ RGBImageStudent::RGBImageStudent() : RGBImage() {
 }
 
 RGBImageStudent::RGBImageStudent(const RGBImageStudent &other) : RGBImage(other.getWidth(), other.getHeight()) {
-	int throwError = 0, e = 1 / throwError;
-	
+	//int throwError = 0, e = 1 / throwError;
+
 	RGBImageStudent cpy = other;
-	for (const auto & rgb : cpy.getPixels()) {
-		
-	}
+	delete[] pixel_map;
+	pixel_map = cpy.getPixels();
 }
 
 RGBImageStudent::RGBImageStudent(const int width, const int height) : RGBImage(width, height) {
-	int throwError = 0, e = 1 / throwError;
+	//int throwError = 0, e = 1 / throwError;
+
+	delete[] pixel_map;
+	pixel_map = new RGB[width * height];
 	//TODO: Initialize pixel storage
 }
 
 RGBImageStudent::~RGBImageStudent() {
-	int throwError = 0, e = 1 / throwError;
+	//int throwError = 0, e = 1 / throwError;
+	delete[] pixel_map;
 	//TODO: delete allocated objects
 }
 
 void RGBImageStudent::set(const int width, const int height) {
 	RGBImage::set(width, height);
+	//int throwError = 0, e = 1 / throwError;
 
+	delete[] pixel_map;
+	pixel_map = new RGB[width * height];
 
-	int throwError = 0, e = 1 / throwError;
 	//TODO: resize or create a new pixel storage (Don't forget to delete the old storage)
 }
 
 void RGBImageStudent::set(const RGBImageStudent &other) {
 	RGBImage::set(other.getWidth(), other.getHeight());
-	int throwError = 0, e = 1 / throwError;
+	//int throwError = 0, e = 1 / throwError;
+
+	RGBImageStudent cpy = other;
+	pixel_map = cpy.getPixels();
+
 	//TODO: resize or create a new pixel storage and copy the object (Don't forget to delete the old storage)
 }
 
@@ -85,7 +94,7 @@ RGB RGBImageStudent::getPixel(int i) const {
 	return pixel_map[i];
 }
 
-std::vector<RGB>& RGBImageStudent::getPixels() {
+RGB* RGBImageStudent::getPixels() {
 	return this->pixel_map;
 }
 

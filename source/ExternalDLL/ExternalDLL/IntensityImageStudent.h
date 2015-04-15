@@ -7,6 +7,8 @@
 #pragma once
 #include "IntensityImage.h"
 class IntensityImageStudent : public IntensityImage {
+private:
+	Intensity* pixel_map;
 public:
 	IntensityImageStudent();
 	IntensityImageStudent(const IntensityImageStudent &other);
@@ -18,6 +20,8 @@ public:
 
 	void setPixel(int x, int y, Intensity pixel);
 	void setPixel(int i, Intensity pixel);
+
+	Intensity* getPixels();
 
 	Intensity getPixel(int x, int y) const;
 	Intensity getPixel(int i) const;
