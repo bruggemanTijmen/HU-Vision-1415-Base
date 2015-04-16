@@ -11,6 +11,8 @@
 #include "DLLExecution.h"
 #include "IntensityImageStudent.h"
 #include "RGBImageStudent.h"
+#include "exectimer.h"
+#include <fstream>
 
 void drawFeatureDebugImage(IntensityImage &image, FeatureMap &features);
 bool executeSteps(DLLExecution * executor);
@@ -35,11 +37,23 @@ int main(int argc, char * argv[]) {
 
 	//opdracht1...........................................................
 
+	BaseTimer timer;
+
+	timer.start();
+
 	IntensityImageStudent* test = RGB_Student_to_Intensity_Image(static_cast<RGBImageStudent*>(input));
+	timer.stop();
 
 	ImageIO::saveIntensityImage(*test, ImageIO::getDebugFileName("test.png"));
 
 	delete test;
+
+	std::cout << "conversion RGBImageStudent to IntensityImageStudent done in: " << timer.elapsedMilliSeconds() << " ms" << std::endl;
+
+	std::ofstream stream;
+	stream.open("timer_data.txt", std::ios::app);
+	
+	stream << timer.elapsedMilliSeconds() << " ms" << std::endl;
 
 	//...............................................................
 
