@@ -20,26 +20,36 @@ IntensityImage * StudentPreProcessing::stepScaleImage(const IntensityImage &imag
 }
 
 IntensityImage * StudentPreProcessing::stepEdgeDetection(const IntensityImage &image) const {
+	printf("mekmek");
+	IntensityImageStudent* cpy = new IntensityImageStudent{ image.getWidth(), image.getHeight() };
 
-	IntensityImageStudent* IntensityImage = new IntensityImageStudent{ image.getWidth(), image.getHeight() };
-
-	const int Gaussian_mask[] = { 0, 1, 0,
-								  1, -4, 1,
-								  0, 1, 0 };
+	const float Gaussian_mask[] = { 0.5, 1, 0.5,
+								  1, -6, 1,
+								  0.5, 1, 0.5 };
 
 	const int OFFSET = 10;
-	
-	for (int i = image.getWidth() + 1; i < (image.getHeight() * image.getWidth()) - ((image.getWidth() +1)+ image.getWidth()); i++) {
+	int width = image.getWidth();
+	for (int i = image.getWidth() + 1; i < (image.getHeight() * image.getWidth()) - ((image.getWidth() +1)); i++) {
 
 		if (i % image.getWidth() == 0 || i % image.getWidth() == image.getWidth()-1){
 			continue;
 		}
-		IntensityImage->setPixel(i, Intensity{ 255 });	
+		
+		int data[] = { image.getPixel(i - (width + 1)), image.getPixel(i - width), image.getPixel(i - (width - 1)),
+			image.getPixel(i - 1), image.getPixel(i), image.getPixel(i + 1), image.getPixel(i + (width - 1)),
+			image.getPixel(i + width), image.getPixel(i + (width + 1)) };
+		
+		Intensity pixel(255);
+		int total;
+		for(int x = 0; x < 9; x++){
+			pixel += (Gaussian_mask[x] * data[x]);
+		}
+		cpy->setPixel(i, pixel);
 	}
 
-	ImageIO::saveIntensityImage(image, ImageIO::getDebugFileName("C:\\Users\\Patrick\\Documents\\GitHub\\HU-Vision-1415-Base\\debug\\test.png"));
+	ImageIO::saveIntensityImage(*cpy, ImageIO::getDebugFileName("testss1.png"));
 
-	return IntensityImage;
+	return cpy;
 }
 
 IntensityImage * StudentPreProcessing::stepThresholding(const IntensityImage &image) const {
