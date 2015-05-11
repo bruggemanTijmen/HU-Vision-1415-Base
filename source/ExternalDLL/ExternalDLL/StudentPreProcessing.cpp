@@ -1,8 +1,7 @@
 #include "StudentPreProcessing.h"
-#include "IntensityImageStudent.h"
-#include "ImageIO.h"
-#include "iostream"
-#include <math.h>
+
+
+#include "Mask.hpp"
 IntensityImage * StudentPreProcessing::stepToIntensityImage(const RGBImage &image) const {
 	IntensityImageStudent* IntensityImage = new IntensityImageStudent{ image.getWidth(), image.getHeight() };
 
@@ -19,7 +18,7 @@ IntensityImage * StudentPreProcessing::stepToIntensityImage(const RGBImage &imag
 IntensityImage * StudentPreProcessing::stepScaleImage(const IntensityImage &image) const {
 	return nullptr;
 }
-IntensityImage * add_mask(const IntensityImage &image, std::vector<float> mask);
+
 IntensityImage * StudentPreProcessing::stepEdgeDetection(const IntensityImage &image) const {
 
 	std::vector<float>mask = { 0, 0, -1, -2, -1, 0, 0, //////////la placien
@@ -30,15 +29,13 @@ IntensityImage * StudentPreProcessing::stepEdgeDetection(const IntensityImage &i
 								0, -2, -3, -4, -3, -2, 0,
 								0, 0, -1, -2, -1, 0, 0 };
 
-	std::vector<float> mask3 = { 0, 0, 0, 0, 0,
-								0, -1, 6, -1, 0,
-								0, -0.5, -1, -0.5, 0,
-								0, -0.5, -1, -0.5, 0,
-								0, -0, 0, 0, 0 };
+	std::vector<float> mask3 = { -0.5, -1, -0.5,
+		-1, 6, -1,
+		-0.5, -1, -0.5 };
 
 	std::vector<float> mask5 = { 0, 1, 0,
 								1, -4, 1,
-								-0, 1, 0, };
+								-0, 1, 0};
 
 	std::vector<float> gaussian_mask = { 1, 2, 3, 2, 1,
 										2, 7, 11, 7, 2,
@@ -57,79 +54,35 @@ IntensityImage * StudentPreProcessing::stepEdgeDetection(const IntensityImage &i
 										-1, 8, -1,
 										- 1, -1, -1 };
 
-	IntensityImage * blur = add_mask(image, gaussian_mask2);
-	ImageIO::saveIntensityImage(*blur, ImageIO::getDebugFileName("blur.png"));
-	IntensityImage * high_pass = add_mask(*blur, high_pass_mask);
+	std::vector<float> left{ -1, -1, 0,
+							-0, -1, 1,
+							1, -1, 0 };
+
+	std::vector<float> right{ -1, 0, 1,
+							0, 0, -4,
+							1, 0, 1 };
+
+	std::vector<float> test1{ -1, 1, 0,
+							0, 1, 1,
+							1, 1, 0 };
+	Mask m;
+	IntensityImage * blur = m.add_mask(image, left);
+	ImageIO::saveIntensityImage(*blur, ImageIO::getDebugFileName("test1.png"));
+	IntensityImage * high_pass = m.add_mask(image, right);
+	ImageIO::saveIntensityImage(*high_pass, ImageIO::getDebugFileName("test2.png"));
+	IntensityImage * test3 = m.add_mask(image, test1);
+	ImageIO::saveIntensityImage(*test3, ImageIO::getDebugFileName("test3.png"));
+	
 	IntensityImageStudent* sharp = new IntensityImageStudent{ image.getWidth(), image.getHeight() };
-	for (int i = 0; i < blur->getHeight()*blur->getWidth();i++){ ///////////////////////// HIER ZIT DE BUGG
+	for (int i = 0; i < blur->getHeight()*blur->getWidth();i++){ 
 		int pixel = blur->getPixel(i) + high_pass->getPixel(i);
 		if (pixel > 255){ pixel = 255; }
 		sharp->setPixel(i, Intensity(pixel));
 	}
 	ImageIO::saveIntensityImage(*sharp, ImageIO::getDebugFileName("sharp.png"));
-	IntensityImage* Done = add_mask(*sharp, mask);
+	IntensityImage* Done = m.add_mask(*sharp, mask3);
 	ImageIO::saveIntensityImage(*Done, ImageIO::getDebugFileName("done.png"));
-	return Done;
-}
-
-IntensityImage * add_mask(const IntensityImage &image, std::vector<float> mask){
-
-	std::vector<float> data;
-	IntensityImageStudent* cpy = new IntensityImageStudent{ image.getWidth(), image.getHeight() };
-	int total = 1;
-	int width = sqrt(mask.size());
-	int mask_size = mask.size();
-	int rowsLeft = (width -1) /2;
-	total = 0;
-	for (int i = 0; i < mask.size(); i++){
-		total = total + mask.at(i);
-	}
-
-	std::cout << mask.size() << " " <<     width << " " << rowsLeft;
-	for (int x = (image.getWidth() * rowsLeft) + rowsLeft; x < (image.getHeight() * image.getWidth()) - ((image.getWidth() * rowsLeft)); x++) {
-		data.clear();
-		//Bovenste rijen doen
-		for (int y = 0; y < rowsLeft; y++) {
-			for (int i = 0; i < width; i++){
-				data.push_back(image.getPixel(x - (image.getWidth()*(rowsLeft - y)) - (rowsLeft - i)));
-			}
-		}
-		//Middelste rij
-		for (int i = 0; i < width; i++){
-			data.push_back(image.getPixel((x - rowsLeft) + i));
-		}
-		//Onderste rijen
-		for (int y = 0; y < rowsLeft; y++) {
-			for (int i = 0; i < width; i++){
-				data.push_back(image.getPixel(x + (image.getWidth()*(y)) - (rowsLeft - i)));
-			}
-		}
-		//std::cout << data.size() << "datasize\n";
-		if (x % image.getWidth() >=rowsLeft && x % image.getWidth() < image.getWidth() -rowsLeft){
-			////////////////////////////////////////////////set the pixels
-			int pixel = 0;
-			for (int z = 0; z < mask_size; z++){
-				pixel += (mask[z] * data[z]);
-
-			}
-			if (pixel < 0){
-				pixel = 0;
-			}
-			if (total!=0){
-				cpy->setPixel(x, Intensity(pixel/total));
-			}
-			else{
-				cpy->setPixel(x, Intensity(pixel));
-			}
-		}
-		else{
-			int pixel = image.getPixel(x);
-			cpy->setPixel(x, Intensity(pixel));
-		}
-	}
-	ImageIO::saveIntensityImage(*cpy, ImageIO::getDebugFileName("function.png"));
-	return cpy;
-
+	return sharp;
 }
 IntensityImage * StudentPreProcessing::stepThresholding(const IntensityImage &image) const {
 	return nullptr;

@@ -107,6 +107,7 @@
     <ClInclude Include="StudentPreProcessing.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Mask.hpp" />
     <ClCompile Include="basetimer.cpp" />
     <ClCompile Include="DefaultExtraction.cpp" />
     <ClCompile Include="DefaultLocalization.cpp" />
