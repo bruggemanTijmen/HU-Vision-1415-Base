@@ -1,5 +1,5 @@
 #include "StudentPreProcessing.h"
-
+#include <math.h>
 
 #include "Mask.hpp"
 IntensityImage * StudentPreProcessing::stepToIntensityImage(const RGBImage &image) const {
@@ -20,7 +20,6 @@ IntensityImage * StudentPreProcessing::stepScaleImage(const IntensityImage &imag
 }
 
 IntensityImage * StudentPreProcessing::stepEdgeDetection(const IntensityImage &image) const {
-
 	std::vector<float>mask = { 0, 0, -1, -2, -1, 0, 0, //////////la placien
 								0, -2, -3, -4, -3, -2, 0,
 								-1, -3, 1, 9, 1, -3, -1,
@@ -54,36 +53,53 @@ IntensityImage * StudentPreProcessing::stepEdgeDetection(const IntensityImage &i
 										-1, 8, -1,
 										- 1, -1, -1 };
 
-	std::vector<float> left{ -1, -1, 0,
-							-0, -1, 1,
-							1, -1, 0 };
+	std::vector<float> left{ -1, -2, -1,
+							0, 0, 0,
+							1, 2, 1 };
 
 	std::vector<float> right{ -1, 0, 1,
-							0, 0, -4,
-							1, 0, 1 };
+							-2, 0, 2,
+							-1, 0, 1 };
 
-	std::vector<float> test1{ -1, 1, 0,
-							0, 1, 1,
-							1, 1, 0 };
+	std::vector<float> test1{ 1, 2, 1,
+							2, 4, 2,
+							1, 2, 1 };
 	Mask m;
-	IntensityImage * blur = m.add_mask(image, left);
-	ImageIO::saveIntensityImage(*blur, ImageIO::getDebugFileName("test1.png"));
-	IntensityImage * high_pass = m.add_mask(image, right);
-	ImageIO::saveIntensityImage(*high_pass, ImageIO::getDebugFileName("test2.png"));
-	IntensityImage * test3 = m.add_mask(image, test1);
-	ImageIO::saveIntensityImage(*test3, ImageIO::getDebugFileName("test3.png"));
-	
+	IntensityImage * blur = m.add_mask(image, test1);
+	ImageIO::saveIntensityImage(*blur, ImageIO::getDebugFileName("blur.png"));
+	IntensityImage * left_image = m.add_mask(*blur, left);
+	ImageIO::saveIntensityImage(*left_image, ImageIO::getDebugFileName("left.png"));
+	IntensityImage * right_image = m.add_mask(*blur, right);
+	ImageIO::saveIntensityImage(*right_image, ImageIO::getDebugFileName("right.png"));
+	//IntensityImage * gaussian = m.add_mask(*blur, high_pass_mask);
+	//ImageIO::saveIntensityImage(*gaussian, ImageIO::getDebugFileName("gaussian.png"));
 	IntensityImageStudent* sharp = new IntensityImageStudent{ image.getWidth(), image.getHeight() };
-	for (int i = 0; i < blur->getHeight()*blur->getWidth();i++){ 
-		int pixel = blur->getPixel(i) + high_pass->getPixel(i);
-		if (pixel > 255){ pixel = 255; }
-		sharp->setPixel(i, Intensity(pixel));
+	for (int i = 0; i < blur->getHeight()*blur->getWidth(); i++){
+		int pixel = sqrt((right_image->getPixel(i) * right_image->getPixel(i)) + (left_image->getPixel(i)*left_image->getPixel(i)));
+		if (pixel > 255){
+			pixel = 255;
+		}
+		sharp->setPixel(i, Intensity(pixel/8));
 	}
 	ImageIO::saveIntensityImage(*sharp, ImageIO::getDebugFileName("sharp.png"));
-	IntensityImage* Done = m.add_mask(*sharp, mask3);
-	ImageIO::saveIntensityImage(*Done, ImageIO::getDebugFileName("done.png"));
+
 	return sharp;
 }
 IntensityImage * StudentPreProcessing::stepThresholding(const IntensityImage &image) const {
-	return nullptr;
+	IntensityImage *newImage = new IntensityImageStudent(image.getWidth(), image.getHeight());
+	int value = 0;
+	for (int y = 1; y < image.getHeight() - 1; y++){
+		for (int x = 1; x < image.getWidth() - 1; x++){
+			value = image.getPixel(x, y);
+			if (value > 10) {
+				value = 0;
+			}
+			else {
+				value = 255;
+			}
+			newImage->setPixel(x, y, value);
+		}
+	}
+	ImageIO::saveIntensityImage(*newImage, ImageIO::getDebugFileName("threshhold.png"));
+	return newImage;
 }
