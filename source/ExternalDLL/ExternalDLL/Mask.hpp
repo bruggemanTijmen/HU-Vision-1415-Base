@@ -19,6 +19,11 @@ public:
 		for (int i = 0; i < mask.size(); i++){
 			total = total + mask.at(i);
 		}
+		for (int x = 0; x < (image.getWidth()); x++){
+			for(int y = 0; y < image.getHeight(); y++) {
+				cpy->setPixel(x, y, (total * 255));
+			}
+		}
 		for (int x = (image.getWidth() * rowsLeft) + rowsLeft; x < (image.getHeight() * image.getWidth()) - ((image.getWidth() * rowsLeft)); x++) {
 			data.clear();
 			//Bovenste rijen doen
@@ -44,7 +49,6 @@ public:
 				for (int z = 0; z < mask_size; z++){
 					pixel += (mask[z] * data[z]);
 				}
-				pixel = abs(pixel);
 				if (total != 0){
 					pixel = abs(pixel) / total;
 					cpy->setPixel(x, Intensity(abs(pixel)));
@@ -54,14 +58,14 @@ public:
 						pixel = 255;
 					}
 					if (pixel < 0){
-						std::cout << pixel << "-\n";
+						pixel = 0;
 					}
 					cpy->setPixel(x, Intensity(abs(pixel)));
 				}
 			}
 			else{
 				int pixel = image.getPixel(x);
-				cpy->setPixel(x, Intensity(abs(pixel)));
+				cpy->setPixel(x, Intensity(total * abs(pixel)));
 			}
 		}
 		return cpy;
