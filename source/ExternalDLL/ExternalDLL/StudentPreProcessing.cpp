@@ -1,7 +1,12 @@
 #include "StudentPreProcessing.h"
 #include <math.h>
-
 #include "Mask.hpp"
+#include "ImageIO.h"
+#include "IntensityImageStudent.h"
+#include "RGBImageStudent.h"
+#include "Point2D.h"
+#include "ImageFactory.h"
+
 IntensityImage * StudentPreProcessing::stepToIntensityImage(const RGBImage &image) const {
 	
 	IntensityImageStudent* IntensityImage = new IntensityImageStudent{ image.getWidth(), image.getHeight() };
@@ -17,11 +22,42 @@ IntensityImage * StudentPreProcessing::stepToIntensityImage(const RGBImage &imag
 }
 
 IntensityImage * StudentPreProcessing::stepScaleImage(const IntensityImage &image) const {
-	return nullptr;
+	Point2D<int> oldSize(image.getWidth(), image.getHeight());
+	Point2D<int> newSize(200, 200);
+
+	IntensityImage* result = ImageFactory::newIntensityImage(newSize.getX(), newSize.getY());
+
+	const float x_ratio = static_cast<float>(oldSize.getX() - 1) / newSize.getX();
+	const float y_ratio = static_cast<float>(oldSize.getY() - 1) / newSize.getY();
+
+	int offset = 0;
+	for (int y = 0; y < newSize.getY(); ++y) {
+		for (int x = 0; x < newSize.getX(); ++x) {	
+			int newX = static_cast<int>(x_ratio * x);
+			int newY = static_cast<int>(y_ratio * y);
+			float delta_x = (x_ratio * x) - newX;
+			float delta_y = (y_ratio * y) - newY;
+
+			int index = newY * oldSize.getX() + newX;
+
+			int leftHigh = static_cast<float>(image.getPixel(index));//a
+			int leftDown = static_cast<float>(image.getPixel(index + 1));//c
+			int rightHigh = static_cast<float>(image.getPixel(index + oldSize.getX())); //b
+			int rightDown = static_cast<float>(image.getPixel(index + oldSize.getX() + 1)); //d
+			
+			int test = (leftHigh + leftDown + rightHigh + rightDown) / 4;
+	
+			result->setPixel(offset++, test);
+		}
+	}
+
+ImageIO::saveIntensityImage (*result, ImageIO::getDebugFileName("scale.png"));
+
+	return result;
 }
 
 IntensityImage * StudentPreProcessing::stepEdgeDetection(const IntensityImage &image) const {
-	std::cout << "student edge detection started\n";
+	std::cout << "yoe\n";
 	std::vector<float>mask = { 0, 0, -1, -2, -1, 0, 0, //////////la placien
 								0, -2, -3, -4, -3, -2, 0,
 								-1, -3, 1, 9, 1, -3, -1,

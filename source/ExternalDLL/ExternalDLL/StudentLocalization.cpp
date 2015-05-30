@@ -15,7 +15,6 @@ bool StudentLocalization::stepFindChinContours(const IntensityImage &image, Feat
 }
 
 bool StudentLocalization::stepFindNoseEndsAndEyes(const IntensityImage &image, FeatureMap &features) const {
-	std::cout << "mekasljkfalkjsd\n";
 	return false;
 }
 
