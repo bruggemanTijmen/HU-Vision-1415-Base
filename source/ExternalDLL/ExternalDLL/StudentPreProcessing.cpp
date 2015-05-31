@@ -27,31 +27,32 @@ IntensityImage * StudentPreProcessing::stepScaleImage(const IntensityImage &imag
 
 	IntensityImage* result = ImageFactory::newIntensityImage(newSize.getX(), newSize.getY());
 
-	const float x_ratio = static_cast<float>(oldSize.getX() - 1) / newSize.getX();
-	const float y_ratio = static_cast<float>(oldSize.getY() - 1) / newSize.getY();
+	float x_ratio = static_cast<float>(oldSize.getX() - 1) / newSize.getX();
+	float y_ratio = static_cast<float>(oldSize.getY() - 1) / newSize.getY();
+
+	std::cout << x_ratio << " " << y_ratio << '\n';
 
 	int offset = 0;
-	for (int y = 0; y < newSize.getY(); ++y) {
-		for (int x = 0; x < newSize.getX(); ++x) {	
-			int newX = static_cast<int>(x_ratio * x);
-			int newY = static_cast<int>(y_ratio * y);
-			float delta_x = (x_ratio * x) - newX;
-			float delta_y = (y_ratio * y) - newY;
+	for (int row = 0; row < newSize.getY(); ++row) {
+		for (int column = 0; column < newSize.getX(); ++column) {
+			float old_X = column * x_ratio;
+			float old_Y = row * y_ratio;
 
-			int index = newY * oldSize.getX() + newX;
-
-			int leftHigh = static_cast<float>(image.getPixel(index));//a
-			int leftDown = static_cast<float>(image.getPixel(index + 1));//c
-			int rightHigh = static_cast<float>(image.getPixel(index + oldSize.getX())); //b
-			int rightDown = static_cast<float>(image.getPixel(index + oldSize.getX() + 1)); //d
+			int leftHigh = image.getPixel((int)old_X, (int)old_Y);//a
+			int leftDown = image.getPixel((int)old_X, (int)old_Y + 1);//c
+			int rightHigh = image.getPixel((int)old_X + 1, (int)old_Y); //b
+			int rightDown = image.getPixel((int)old_X + 1, (int)old_Y + 1); //d
 			
-			int test = (leftHigh + leftDown + rightHigh + rightDown) / 4;
-	
-			result->setPixel(offset++, test);
+			float x_top = ((((int)old_X+1) - old_X) * leftHigh) + ((old_X - (int)old_X) * rightHigh);
+			float x_down = ((((int)old_X + 1) - old_X) * leftDown) + ((old_X - (int)old_X) * rightDown);
+
+			float newValue = ((((int)old_Y + 1) - old_Y) * x_top) + ((old_Y - (int)old_Y) * x_down);
+
+			result->setPixel(column, row, Intensity(newValue));
 		}
 	}
 
-ImageIO::saveIntensityImage (*result, ImageIO::getDebugFileName("scale.png"));
+	ImageIO::saveIntensityImage(*result, ImageIO::getDebugFileName("scale.png"));
 
 	return result;
 }
