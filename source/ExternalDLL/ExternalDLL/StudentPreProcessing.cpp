@@ -23,20 +23,22 @@ IntensityImage * StudentPreProcessing::stepToIntensityImage(const RGBImage &imag
 
 IntensityImage * StudentPreProcessing::stepScaleImage(const IntensityImage &image) const {
 	Point2D<int> oldSize(image.getWidth(), image.getHeight());
-	Point2D<int> newSize(200, 200);
 
+
+
+
+	float x_ratio = static_cast<float>(oldSize.getX() - 1) / 260;
+	float y_ratio = static_cast<float>(oldSize.getY() - 1) / 260;
+	float ratio = y_ratio;
+	if (x_ratio > y_ratio){ ratio = x_ratio; }
+
+	Point2D<int> newSize(oldSize.getX() / ratio, oldSize.getY() / ratio);
 	IntensityImage* result = ImageFactory::newIntensityImage(newSize.getX(), newSize.getY());
-
-	float x_ratio = static_cast<float>(oldSize.getX() - 1) / newSize.getX();
-	float y_ratio = static_cast<float>(oldSize.getY() - 1) / newSize.getY();
-
-	std::cout << x_ratio << " " << y_ratio << '\n';
-
 	int offset = 0;
 	for (int row = 0; row < newSize.getY(); ++row) {
 		for (int column = 0; column < newSize.getX(); ++column) {
-			float old_X = column * x_ratio;
-			float old_Y = row * y_ratio;
+			float old_X = column * ratio;
+			float old_Y = row * ratio;
 
 			int leftHigh = image.getPixel((int)old_X, (int)old_Y);//a
 			int leftDown = image.getPixel((int)old_X, (int)old_Y + 1);//c
