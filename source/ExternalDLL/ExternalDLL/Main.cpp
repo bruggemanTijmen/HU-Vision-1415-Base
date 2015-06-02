@@ -14,7 +14,7 @@
 #include "exectimer.h"
 #include <fstream>
 #include<windows.h>
-
+#include "psapi.h"
 void drawFeatureDebugImage(IntensityImage &image, FeatureMap &features);
 bool executeSteps(DLLExecution * executor);
 IntensityImageStudent* RGB_Student_to_Intensity_Image(RGBImageStudent* image);
@@ -26,35 +26,18 @@ int main(int argc, char * argv[]) {
 
 
 
-	//ImageIO::debugFolder = "C:\\Users\\Tijmen\\Documents\\Vision\\HU-Vision-1415-Base\\debug";
-	ImageIO::debugFolder = "C:\\Users\\Patrick\\Documents\\GitHub\\HU-Vision-1415-Base\\debug";
+	ImageIO::debugFolder = "C:\\Users\\Tijmen\\Documents\\Vision\\HU-Vision-1415-Base\\debug";
+	//ImageIO::debugFolder = "C:\\Users\\Patrick\\Documents\\GitHub\\HU-Vision-1415-Base\\debug";
 	ImageIO::isInDebugMode = true; //If set to false the ImageIO class will skip any image save function calls
 
 
 	RGBImage * input = ImageFactory::newRGBImage();
-	//if (!ImageIO::loadImage("C:\\Users\\Tijmen\\Documents\\Vision\\HU-Vision-1415-Base\\testsets\\Set A\\TestSet Images\\male-1.png", *input)) {
-	if (!ImageIO::loadImage("C:\\Users\\Patrick\\Documents\\GitHub\\HU-Vision-1415-Base\\testsets\\Set A\\TestSet Images\\male-1.png", *input)) {
+	if (!ImageIO::loadImage("C:\\Users\\Tijmen\\Documents\\Vision\\HU-Vision-1415-Base\\testsets\\Set A\\TestSet Images\\female-2.png", *input)) {
+	//if (!ImageIO::loadImage("C:\\Users\\Patrick\\Documents\\GitHub\\HU-Vision-1415-Base\\testsets\\Set A\\TestSet Images\\male-1.png", *input)) {
 		std::cout << "Image could not be loaded!" << std::endl;
 		system("pause");
 		return 0;
 	}
-
-	MEMORYSTATUSEX statex;
-
-	statex.dwLength = sizeof(statex);
-
-	// Use to convert bytes to MB
-	const int DIV = 1048576;
-
-	GlobalMemoryStatusEx(&statex);
-	printf("There is  %d percent of memory in use.\n", statex.dwMemoryLoad);
-	printf("There are %d total Mbytes of physical memory.\n", statex.ullTotalPhys / DIV);
-	printf("There are %d free Mbytes of physical memory.\n", statex.ullAvailPhys / DIV);
-	printf("There are %d total Mbytes of paging file.\n", statex.ullTotalPageFile / DIV);
-	printf("There are %d free Mbytes of paging file.\n", statex.ullAvailPageFile / DIV);
-	printf("There are %d total Mbytes of virtual memory.\n", statex.ullTotalVirtual / DIV);
-	printf("There are %d free Mbytes of virtual memory.\n", statex.ullAvailVirtual / DIV);
-	printf("There are %d free Mbytes of extended memory.\n", statex.ullAvailExtendedVirtual / DIV);
 
 	ImageIO::saveRGBImage(*input, ImageIO::getDebugFileName("debug.png"));
 
@@ -68,7 +51,7 @@ int main(int argc, char * argv[]) {
 			std::cout << (i+1) << ": " << executor->facialParameters[i] << std::endl;
 		}
 	}
-
+	
 	delete executor;
 	system("pause");
 	return 1;
@@ -87,8 +70,10 @@ bool executeSteps(DLLExecution * executor) {
 		return false;
 	}
 	ImageIO::saveIntensityImage(*executor->resultPreProcessingStep2, ImageIO::getDebugFileName("Pre-processing-2.png"));
+	std::ofstream stream;
+	stream.open("ogen_data3.txt", std::ios::app);
 
-	if (!executor->executePreProcessingStep3(false)) {
+	if (!executor->executePreProcessingStep3(true)) {
 		std::cout << "Pre-processing step 3 failed!" << std::endl;
 		return false;
 	}
@@ -100,7 +85,6 @@ bool executeSteps(DLLExecution * executor) {
 	}
 	ImageIO::saveIntensityImage(*executor->resultPreProcessingStep4, ImageIO::getDebugFileName("Pre-processing-4.png"));
 	executor->studentPreProcessing.stepEdgeDetection(*executor->resultPreProcessingStep1);
-	//executor->studentPreProcessing.stepEdgeDetection(*executor->resultPreProcessingStep4);
 
 	//Execute the localization steps
 	if (!executor->prepareLocalization()) {
@@ -128,20 +112,11 @@ bool executeSteps(DLLExecution * executor) {
 		return false;
 	}
 
-	BaseTimer timer;
-	timer.start();
 	if (!executor->executeLocalizationStep5(false)) {
 		std::cout << "Localization step 5 failed!" << std::endl;
 		return false;
 	}
-	timer.stop();
 
-	std::ofstream stream;
-	stream.open("timer_data.txt", std::ios::app);
-
-	stream << timer.elapsedMilliSeconds() << " ms1" << std::endl;
-
-	stream.close();
 
 	//Execute the extraction steps
 	if (!executor->prepareExtraction()) {

@@ -42,7 +42,6 @@ public:
 					data.push_back(image.getPixel(x + (image.getWidth()*(y)) - (rowsLeft - i)));
 				}
 			}
-			//std::cout << data.size() << "datasize\n";
 			if (x % image.getWidth() >= rowsLeft && x % image.getWidth() < image.getWidth() - rowsLeft){
 				////////////////////////////////////////////////set the pixels
 				int pixel = 0;
