@@ -24,11 +24,8 @@ IntensityImage * StudentPreProcessing::stepToIntensityImage(const RGBImage &imag
 IntensityImage * StudentPreProcessing::stepScaleImage(const IntensityImage &image) const {
 	Point2D<int> oldSize(image.getWidth(), image.getHeight());
 
-
-
-
-	float x_ratio = static_cast<float>(oldSize.getX() - 1) / 260;
-	float y_ratio = static_cast<float>(oldSize.getY() - 1) / 260;
+	float x_ratio = static_cast<float>(oldSize.getX() - 1) / 200;
+	float y_ratio = static_cast<float>(oldSize.getY() - 1) / 200;
 	float ratio = y_ratio;
 	if (x_ratio > y_ratio){ ratio = x_ratio; }
 
