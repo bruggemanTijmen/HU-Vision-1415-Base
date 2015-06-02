@@ -2,6 +2,7 @@
 #include "ImageIO.h"
 #include "intensityImageStudent.h"
 #include "ImageFactory.h"
+
 bool StudentLocalization::stepFindHead(const IntensityImage &image, FeatureMap &features) const {
 	return false;
 }
@@ -40,7 +41,7 @@ bool StudentLocalization::stepFindExactEyes(const IntensityImage &image, Feature
 		testImage->setPixel(bot_i - pos, RGB(0, 255, 255));
 	}
 	std::vector<int> histogram;
-	for (int i = y_top_left; i < y_bot_left; i++){
+	for (int i = y_top_left; i < y_bot_left; i++){ // maak histogram
 		int total = 0;
 		for (int y = x_top_left; y < x_bot_left; y++){
 			if (testImage->getPixel((i*testImage->getWidth()) + y).b != 255){
@@ -56,24 +57,17 @@ bool StudentLocalization::stepFindExactEyes(const IntensityImage &image, Feature
 		if (histogram[i] < min ){
 			min = histogram[i];
 		}
-		std::cout << histogram[i] <<  "as\n";
 	}
 	avg = avg / histogram.size();
-	std::cout << min << " - " << avg << " - \n";
 	bool found = false;
 	int newY_bot_left = y_bot_left;
 	int newY_top_left = y_bot_left;
 	for (int i = histogram.size(); i > 0; i--){
 		if (!found && histogram[i] == min){
 			newY_bot_left = (y_bot_left - (histogram.size() - i)) ;
-			std::cout << "aslj/n\n";
 		}
 		else if (!found && newY_bot_left != y_bot_left && histogram[i] > avg){
 			found = true;
-			std::cout << "found lefts - " << histogram[i] << " - " << histogram[i + 1] << " - " << i << "\n";
-		}
-		else{
-			std::cout << "niets\n";
 		}
 		if (found){
 			if (histogram[i] > avg){
@@ -94,9 +88,7 @@ bool StudentLocalization::stepFindExactEyes(const IntensityImage &image, Feature
 		}
 		histogram.push_back(total);
 	}
-	for (int a : histogram){
-		std::cout << a << " - \n";
-	}
+
 	int newX_top_left = x_top_left;
 	int newX_bot_left = x_bot_left;
 
@@ -106,7 +98,6 @@ bool StudentLocalization::stepFindExactEyes(const IntensityImage &image, Feature
 			if ( histogram[i + 1] >0){
 				newX_top_left = (x_top_left + i);
 				foundleft = true;
-				std::cout << "found left - " << histogram[i] << " - " << histogram[i + 1] << " - " << i << "\n";
 				continue;
 			}
 		}
@@ -152,7 +143,6 @@ bool StudentLocalization::stepFindExactEyes(const IntensityImage &image, Feature
 		if (a < min){
 			min = a;
 		}
-		//std::cout << a << ".\n";
 	}
 	avg = avg / histogram.size();
 	std::cout << min;
@@ -165,7 +155,6 @@ bool StudentLocalization::stepFindExactEyes(const IntensityImage &image, Feature
 		}
 		else if (!found && newY_bot_right != y_bot_left && histogram[i] > avg){
 			found = true;
-			std::cout << "found left - " << histogram[i] << " - " << histogram[i - 1] << " - " << i << "\n";
 		}
 		if (found){
 			if (histogram[i] > avg){
@@ -193,13 +182,11 @@ bool StudentLocalization::stepFindExactEyes(const IntensityImage &image, Feature
 		}
 		histogram.push_back(total);
 	}
-	std::cout << "\n\n\n";
 	for (int a : histogram){
 		avg += a;
 		if (a < min){
 			min = a;
 		}
-		//std::cout << a << "\n";
 	}
 	int newX_top_right = x_top_right;
 	int newX_bot_right = x_bot_right;
@@ -209,18 +196,15 @@ bool StudentLocalization::stepFindExactEyes(const IntensityImage &image, Feature
 		if (!foundleft && histogram[i] == 0){
 			if (histogram[i -1] >0 && histogram[i -2] > 0 && i != histogram.size()){
 				newX_bot_right = (x_bot_right - (histogram.size() -i));
-				std::cout << "found left - " << histogram[i] << " - " << histogram[i - 1] << " - " << i << "\n";
 				foundleft = true;
 				continue;
 			}
 		}
 		if (foundleft && histogram[i] == 0){
 			newX_top_right = (newX_top_right+ i );
-			std::cout << "found right - " << histogram[i] << " - " << histogram[i - 1] << " - " << histogram.size() << " - " << i << " \t" <<  newX_top_right << " - " <<x_top_right << "\n";
 			break;
 		}
 	}
-	std::cout << newX_top_right << " - " << x_top_right << " - " << newY_bot_right << " - " << y_bot_right << "hierja \n";
 	top_i = newX_top_right + (newY_top_right * testImage->getWidth());
 	bot_i = newX_bot_right + (newY_bot_right * testImage->getWidth());
 	for (int i = newX_top_right; i < newX_bot_right; i++){
@@ -228,7 +212,6 @@ bool StudentLocalization::stepFindExactEyes(const IntensityImage &image, Feature
 		testImage->setPixel(top_i + pos, RGB(0, 255, 0));
 		testImage->setPixel(bot_i - pos, RGB(0, 255, 0));
 	}
-	ImageIO::saveRGBImage(*testImage, ImageIO::getDebugFileName("muis4.jpg"));
 	features.getFeature(Feature::FEATURE_EYE_RIGHT_RECT);
 	Feature eye(Feature::FEATURE_EYE_LEFT_RECT);
 	eye.addPoint(Point2D<double>(newX_top_left,newY_top_left));

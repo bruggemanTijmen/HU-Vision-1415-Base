@@ -13,6 +13,7 @@
 #include "RGBImageStudent.h"
 #include "exectimer.h"
 #include <fstream>
+#include<windows.h>
 
 void drawFeatureDebugImage(IntensityImage &image, FeatureMap &features);
 bool executeSteps(DLLExecution * executor);
@@ -38,28 +39,22 @@ int main(int argc, char * argv[]) {
 		return 0;
 	}
 
+	MEMORYSTATUSEX statex;
 
-	//opdracht1...........................................................
+	statex.dwLength = sizeof(statex);
 
-	BaseTimer timer;
+	// Use to convert bytes to MB
+	const int DIV = 1048576;
 
-	timer.start();
-
-	IntensityImageStudent* test = RGB_Student_to_Intensity_Image(static_cast<RGBImageStudent*>(input));
-	timer.stop();
-
-	ImageIO::saveIntensityImage(*test, ImageIO::getDebugFileName("test.png"));
-
-	delete test;
-
-	//std::cout << "conversion RGBImageStudent to IntensityImageStudent done in: " << timer.elapsedMilliSeconds() << " ms" << std::endl;
-
-	std::ofstream stream;
-	stream.open("timer_data.txt", std::ios::app);
-	
-	stream << timer.elapsedMilliSeconds() << " ms" << std::endl;
-
-	//...............................................................
+	GlobalMemoryStatusEx(&statex);
+	printf("There is  %d percent of memory in use.\n", statex.dwMemoryLoad);
+	printf("There are %d total Mbytes of physical memory.\n", statex.ullTotalPhys / DIV);
+	printf("There are %d free Mbytes of physical memory.\n", statex.ullAvailPhys / DIV);
+	printf("There are %d total Mbytes of paging file.\n", statex.ullTotalPageFile / DIV);
+	printf("There are %d free Mbytes of paging file.\n", statex.ullAvailPageFile / DIV);
+	printf("There are %d total Mbytes of virtual memory.\n", statex.ullTotalVirtual / DIV);
+	printf("There are %d free Mbytes of virtual memory.\n", statex.ullAvailVirtual / DIV);
+	printf("There are %d free Mbytes of extended memory.\n", statex.ullAvailExtendedVirtual / DIV);
 
 	ImageIO::saveRGBImage(*input, ImageIO::getDebugFileName("debug.png"));
 
@@ -87,7 +82,7 @@ bool executeSteps(DLLExecution * executor) {
 		return false;
 	}
 
-	if (!executor->executePreProcessingStep2(true)) {
+	if (!executor->executePreProcessingStep2(false)) {
 		std::cout << "Pre-processing step 2 failed!" << std::endl;
 		return false;
 	}
@@ -133,12 +128,20 @@ bool executeSteps(DLLExecution * executor) {
 		return false;
 	}
 
+	BaseTimer timer;
+	timer.start();
 	if (!executor->executeLocalizationStep5(false)) {
 		std::cout << "Localization step 5 failed!" << std::endl;
 		return false;
 	}
+	timer.stop();
 
+	std::ofstream stream;
+	stream.open("timer_data.txt", std::ios::app);
 
+	stream << timer.elapsedMilliSeconds() << " ms1" << std::endl;
+
+	stream.close();
 
 	//Execute the extraction steps
 	if (!executor->prepareExtraction()) {
